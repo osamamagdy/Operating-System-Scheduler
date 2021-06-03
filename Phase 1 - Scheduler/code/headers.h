@@ -10,6 +10,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <string.h>
+#include <unistd.h>
+
+#define FCFS 1
+#define SJF 2
+#define HPF 3
+#define SRTN 4
+#define RR 5
+
+
 
 typedef short bool;
 #define true 1
