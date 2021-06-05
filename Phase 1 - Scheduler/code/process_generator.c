@@ -1,122 +1,161 @@
 #include "headers.h"
 void clearResources(int);
 
-
-
-
-
 struct process
 {
-    int id,arrival,runtime,priority;
+    int id, arrival, runtime, priority;
     /* data */
 };
-
-
 
 int main(int argc, char *argv[])
 {
 
+    /**
+     * @todo We need to make this the number of processes in the file
+     * 
+     */
     int p_num = 10;
-    signal(SIGINT, clearResources);
-    // TODO Initialization
 
+    /**
+     * @brief Construct a new signal object and bind the ^C to clear resources upon completion.
+     * @todo We may need to call clearResources at the end of tht main
+     * 
+     */
+    signal(SIGINT, clearResources);
 
     // 1. Read the input files.
-    //char * file_name = argv[1];   //This line in case we want to pass the file name as an arguement but it's not mentioned in the documentation.
-    char * file_name = "processes.txt";
+    /**
+     * @brief Read the input file, ignore the first four words, and Create array of pointers to struct process
+     * @todo IF we will read the name of the file from command line arguements , 
+     * we need to uncomment the line below, comment the line after it, modify the variable where we read the algo, and modify the make file accordingly.
+     * 
+     */
 
+    //char * file_name = argv[1];   //This line in case we want to pass the file name as an arguement but it's not mentioned in the documentation.
+    char *file_name = "processes.txt";
 
     FILE *fp = fopen(file_name, "r");
 
-
-    if (fp==NULL)
+    if (fp == NULL)
     {
-        printf("Couldn't open %s for reading\n",file_name);
+        printf("Couldn't open %s for reading\n", file_name);
         return 0;
     }
 
-    int id,arrival,runtime,priority;
-    char * word;
-    fscanf(fp, "%s",&word);
-    fscanf(fp, "%s",&word);
-    fscanf(fp, "%s",&word);
-    fscanf(fp, "%s",&word);
+    int id, arrival, runtime, priority;
+    char *word;
+    fscanf(fp, "%s", &word);
+    fscanf(fp, "%s", &word);
+    fscanf(fp, "%s", &word);
+    fscanf(fp, "%s", &word);
 
-    // //Create array of pointers to processes 
-    struct process ** array = (struct process **)malloc(p_num * sizeof(struct process *));
+    // //Create array of pointers to processes
+    struct process **array = (struct process **)malloc(p_num * sizeof(struct process *));
 
     for (int i = 0; i < 10; i++)
     {
-        fscanf(fp,"%d %d %d %d",&id , &arrival , &runtime , &priority);
-        array[i] = malloc( sizeof(struct process));
+        fscanf(fp, "%d %d %d %d", &id, &arrival, &runtime, &priority);
+        array[i] = malloc(sizeof(struct process));
         array[i]->id = id;
         array[i]->arrival = arrival;
         array[i]->runtime = runtime;
         array[i]->priority = priority;
-        
     }
 
-
-
-
+    //Close the file
     fclose(fp);
-    
 
+    /**
+     * @brief Here we read the chosen algorithm and switch according to #defines in the header file
+     * @todo modify if the algorithm needs some parameters that is expected to be provided by the command line
+     * @todo Write the switch case for each algorithm
+     */
+    char *algo = argv[1];
 
-    // 2. Read the chosen scheduling algorithm and its parameters, if there are any from the argument list.
-    
-    char  * algo = argv[1];
-    /*To DO: Read the parameters*/
-    
-    // 3. Initiate and create the scheduler and clock processes.
-    int pid ;
-    pid = fork();
-    if (pid==0){
-        printf("Hello i am the child my pid is %d\n",getpid());
-        char * args[] = {"./clk.o" , NULL};
-        execv(args[0],args);
-    }
-    else if(pid==-1)
+    /**
+     * @brief generate the clock & scheduler processes according to their names in the make file
+     */
+    int pid;
+    for (int i = 0; i < 2; i++)
     {
-        printf("Error\n");
-    }
-    else
-    {
-        printf("I am the parent and my childs pid = %d and mine is %d\n",pid,getpid());
-    }
-    
-    // 4. Use this function after creating the clock process to initialize clock.
-    
-    
-    
-    //initClk();
-    
-    
-    
-    // To get time use this function. 
-    int x = 0; //getClk();
-    
-    
-    
-    printf("Current Time is %d\n", x);
-    
-    
-    // TODO Generation Main Loop
-    // 5. Create a data structure for processes and provide it with its parameters.
-    // 6. Send the information to the scheduler at the appropriate time.
-    // 7. Clear clock resources
-    
-    
-    
-    
-    
-    destroyClk(true);
 
+        pid = fork();
+        if (pid == 0)
+        {
+            if (i == 0)
+            {
+                char *args[] = {"./clk.out", NULL};
+                execv(args[0], args);
+            }
+            else if (i == 1)
+            {
+                char *args[] = {"./scheduler.out", NULL};
+                execv(args[0], args);
+            }
+            /* code */
+        }
+        else if (pid == -1)
+        {
+            printf("Error\n");
+        }
+    }
+
+    printf("I am the parent and my childs pid = %d and mine is %d\n", pid, getpid());
+
+    /**
+     * @brief Construct a new init Clk object
+     * Use this function inside every process deals with the clock after creating the clock process to initialize clock. 
+     * It is blocking function untill the process of the clock is created
+     */
+    initClk();
+
+    /**
+     * @brief The main loop function that at each time step generates a process (like we did for clock and scheduler)
+     * And send its info to the Scheduler via message queue 
+     * @todo Generate process and send info
+     * 
+     */
+
+    // To get time use this function.
+    int prev = getClk();
+    int process_pointer = 0;
+    while (1)
+    {
+        int x = getClk();
+
+        if (x > prev)
+        {
+
+            prev = x;
+            while (array[process_pointer]->arrival == x)
+            {
+                printf("Process %d arrived at time : %d\n", array[process_pointer]->id, x);
+                process_pointer++;
+                if (process_pointer == p_num)
+                {
+                    break;
+                    /* code */
+                }
+            }
+        }
+        if (process_pointer == p_num)
+        {
+            break;
+            /* code */
+        }
+    }
+
+    /**
+     * @todo Upon exit we might need to call clearResources instead of only destroyClk
+     * 
+     */
+
+    destroyClk(1);
 }
 
 void clearResources(int signum)
 {
     //TODO Clears all resources in case of interruption
-
+    destroyClk(1);
     raise(SIGKILL);
 }
