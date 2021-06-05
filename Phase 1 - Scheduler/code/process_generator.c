@@ -65,20 +65,31 @@ int main(int argc, char *argv[])
 
     // 2. Read the chosen scheduling algorithm and its parameters, if there are any from the argument list.
     
-    int algo = argv[1];
+    char  * algo = argv[1];
     /*To DO: Read the parameters*/
     
     // 3. Initiate and create the scheduler and clock processes.
-    int pid = fork();
+    int pid ;
+    pid = fork();
     if (pid==0){
-        execl("/clk.out",NULL);
+        printf("Hello i am the child my pid is %d\n",getpid());
+        char * args[] = {"./clk.o" , NULL};
+        execv(args[0],args);
+    }
+    else if(pid==-1)
+    {
+        printf("Error\n");
+    }
+    else
+    {
+        printf("I am the parent and my childs pid = %d and mine is %d\n",pid,getpid());
     }
     
     // 4. Use this function after creating the clock process to initialize clock.
     
     
     
-    initClk();
+    //initClk();
     
     
     
