@@ -1,14 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct process
+typedef struct process
 {
     int id;
     int arrival;
     int runtime;
     int priority;
     /* data */
-};
+}process;
 
 struct Node
 {
