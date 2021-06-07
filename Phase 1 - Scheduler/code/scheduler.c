@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 
 
 void SJF(){
+    /*
     Heap PQ();
     int currRemaining = 0; 
     while(!empty(PQ) && !empty(array))
@@ -45,4 +46,5 @@ void SJF(){
             start(process);
         }
     }
+    */
 }
