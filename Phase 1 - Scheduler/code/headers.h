@@ -32,6 +32,7 @@ typedef short bool;
 int *shmaddr; //
 //===============================
 
+
 int getClk()
 {
     return *shmaddr;
