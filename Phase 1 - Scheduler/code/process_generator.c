@@ -13,6 +13,18 @@ int main(int argc, char *argv[])
      */
     int p_num = 0;
 
+    key_t key_id;
+    int msgq_id, send_val;
+
+    key_id = ftok("keyfile", 65);
+    msgq_id = msgget(key_id, 0666 | IPC_CREAT);
+
+    if (msgq_id == -1)
+    {
+        perror("Error in create");
+        exit(-1);
+    }
+
     /**
      * @brief Construct a new signal object and bind the ^C to clear resources upon completion.
      * @todo We may need to call clearResources at the end of tht main
@@ -135,20 +147,25 @@ int main(int argc, char *argv[])
             prev = x;
             while (array.head->data.arrival == x)
             {
-                printf("Process %d arrived at time : %d\n",array.head->data.id, x);
+                //printf("Process %d arrived at time : %d\n",array.head->data.id, x);
+                struct msgbuff message;
+                message.mtype = 7; 
+                message.p = array.head->data;
+                send_val = msgsnd(msgq_id, &message, sizeof(message.p), !IPC_NOWAIT);
+                if (send_val == -1)
+                    perror("Errror in send");
                 dequeue(&array);
+            
                 process_pointer++;
                 if (process_pointer == p_num)
                 {
                     break;
-                    /* code */
                 }
             }
         }
         if (process_pointer == p_num)
         {
             break;
-            /* code */
         }
     }
 

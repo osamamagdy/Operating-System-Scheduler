@@ -24,6 +24,12 @@ struct List
     int size;
 };
 
+struct msgbuff
+{
+    long mtype;
+    struct process p;
+};
+
 
 void initList(struct List *l)
 {
