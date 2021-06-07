@@ -1,11 +1,8 @@
 #include "headers.h"
+#include "list.c"
 void clearResources(int);
 
-struct process
-{
-    int id, arrival, runtime, priority;
-    /* data */
-};
+
 
 int main(int argc, char *argv[])
 {
@@ -14,7 +11,7 @@ int main(int argc, char *argv[])
      * @todo We need to make this the number of processes in the file
      * 
      */
-    int p_num = 10;
+    int p_num = 0;
 
     /**
      * @brief Construct a new signal object and bind the ^C to clear resources upon completion.
@@ -50,17 +47,26 @@ int main(int argc, char *argv[])
     fscanf(fp, "%s", &word);
 
     // //Create array of pointers to processes
-    struct process **array = (struct process **)malloc(p_num * sizeof(struct process *));
+    struct List array;
+    initList(&array); 
 
-    for (int i = 0; i < 10; i++)
+    fscanf(fp, "%d", &id);
+    while (!feof(fp))
     {
-        fscanf(fp, "%d %d %d %d", &id, &arrival, &runtime, &priority);
-        array[i] = malloc(sizeof(struct process));
-        array[i]->id = id;
-        array[i]->arrival = arrival;
-        array[i]->runtime = runtime;
-        array[i]->priority = priority;
+        fscanf(fp, "%d %d %d" ,&arrival, &runtime, &priority);
+        struct process *p = malloc(sizeof(struct process));
+        p->id = id;
+        p->arrival = arrival;
+        p->runtime = runtime;
+        p->priority = priority;
+
+        enqueue(&array, p);
+
+        fscanf(fp, "%d", &id);
+        p_num++;
     }
+
+    printf("%d\n", p_num);
 
     //Close the file
     fclose(fp);
@@ -127,9 +133,10 @@ int main(int argc, char *argv[])
         {
 
             prev = x;
-            while (array[process_pointer]->arrival == x)
+            while (array.head->data.arrival == x)
             {
-                printf("Process %d arrived at time : %d\n", array[process_pointer]->id, x);
+                printf("Process %d arrived at time : %d\n",array.head->data.id, x);
+                dequeue(&array);
                 process_pointer++;
                 if (process_pointer == p_num)
                 {
