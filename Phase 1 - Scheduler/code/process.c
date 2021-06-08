@@ -6,14 +6,14 @@ bool is_sleep = false;
 
 void sleep_sig(int signum)
 {
-    printf("Sleep %d\n",getpid());
+    printf("Process %d sleep\n",getpid());
     is_sleep = true;
 
 }
 
 void awake_sig(int signum)
 {
-    printf("Wake %d\n",getpid());
+    printf("Process %d Wake \n",getpid());
     is_sleep = false;
 }
 
@@ -31,14 +31,14 @@ int main(int agrc, char *argv[])
     remainingtime = atoi(argv[1]);
     int prev = getClk();
     
-    //printf("Process started with time = %d\n", remainingtime);
+    printf("Process %d started with time = %d\n", getpid() ,remainingtime);
     while (remainingtime > 0)
     {
         int x = getClk();
 
         if (x > prev)
         {
-            printf("Process now in time slot %d\n", x);
+            printf("Process %d in time slot %d\n",getpid(), x);
             prev = x;
 
             if (!is_sleep)
@@ -47,8 +47,6 @@ int main(int agrc, char *argv[])
         
     }
 
-    printf("A7A\n");
-    destroyClk(false);
-
+    printf("Process %d terminating\n",getpid());
     return 0;
 }

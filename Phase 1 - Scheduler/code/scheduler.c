@@ -1,6 +1,9 @@
 #include "headers.h"
 
 void clearResources(int signum);
+
+
+
 int main(int argc, char *argv[])
 {
     
@@ -30,6 +33,10 @@ int main(int argc, char *argv[])
 
     printf("Scheduler ended\n");
 
+    /**
+     * @todo Remove this Sleep
+     * 
+     */
     sleep(50);
     destroyClk(true);
 }
@@ -67,10 +74,11 @@ void FCFS_SC(int msgq_id, int sem1, int sem2)
             curent_p.runtime = ready_queue.head->data.runtime;
             curent_p.pid = ready_queue.head->data.pid;
 
-            kill(curent_p.pid, SIGUSR2);
+            
+            //kill(curent_p.pid, SIGUSR2);
 
-            current_remain = ready_queue.head->data.runtime;
-            printf("at time %d run new process with id = %d\n", x, curent_p.id);
+            current_remain = curent_p.runtime;
+            printf("at time %d run new process with id = %d at pid = %d\n", x, curent_p.id,curent_p.pid);
             CPU_working = true;
             dequeue(&ready_queue);
         }
@@ -81,6 +89,7 @@ void FCFS_SC(int msgq_id, int sem1, int sem2)
         }
         else if (!CPU_working && ready_queue.size == 0 && current_remain <= 0)
         {
+
             bool end = down_nowait(sem1);
             if (end)
             {
@@ -98,6 +107,7 @@ void FCFS_SC(int msgq_id, int sem1, int sem2)
             pid = fork();
             if (pid == 0)
             {
+                printf("Forked\n");
                 char snum[5];
                 sprintf(snum, "%d", message.p.runtime);
                 char *args[] = {"./process.out", snum, NULL};
@@ -105,7 +115,7 @@ void FCFS_SC(int msgq_id, int sem1, int sem2)
             }
             ready_queue.head->data.pid = pid;
             printf("pid is %d == %d\n", pid,ready_queue.head->data.pid);
-            kill(pid,SIGUSR1);
+            //kill(pid,SIGUSR1);
 
         }
     }
