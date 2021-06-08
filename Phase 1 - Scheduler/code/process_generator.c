@@ -2,6 +2,11 @@
 void clearResources(int);
 
 
+
+
+int msgq_id,sem1,sem2;
+union Semun semun;
+
 int main(int argc, char *argv[])
 {
 
@@ -10,15 +15,15 @@ int main(int argc, char *argv[])
      * 
      */
     int p_num = 0;
-
+    semun.val =0;
     key_t key_id;
-    int msgq_id, send_val;
+    int send_val;
 
     key_id = ftok("keyfile", 65);
     msgq_id = msgget(key_id, 0666 | IPC_CREAT);
 
-    int sem1 = semget(key_id, 1, 0666 | IPC_CREAT);
-    int sem2 = semget(key_id + 1, 1, 0666 | IPC_CREAT);
+    sem1 = semget(key_id, 1, 0666 | IPC_CREAT);
+    sem2 = semget(key_id + 1, 1, 0666 | IPC_CREAT);
     if (sem1 == -1 || sem2 == -1)
     {
         perror("Error in create sem");
@@ -199,12 +204,15 @@ int main(int argc, char *argv[])
 
     clear_sem(sem1);
     clear_sem(sem2);
-    destroyClk(1);
+    clearResources(0);
 }
 
 void clearResources(int signum)
 {
     //TODO Clears all resources in case of interruption
     destroyClk(1);
+    msgctl(msgq_id, IPC_RMID, (struct msqid_ds *) 0);
+    semctl(sem1,0 , IPC_RMID,semun);
+    semctl(sem2,0 , IPC_RMID,semun);
     raise(SIGKILL);
 }

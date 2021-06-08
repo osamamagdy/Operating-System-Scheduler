@@ -6,11 +6,14 @@ bool is_sleep = false;
 
 void sleep_sig(int signum)
 {
+    printf("Sleep %d\n",getpid());
     is_sleep = true;
+
 }
 
 void awake_sig(int signum)
 {
+    printf("Wake %d\n",getpid());
     is_sleep = false;
 }
 
@@ -35,14 +38,16 @@ int main(int agrc, char *argv[])
 
         if (x > prev)
         {
+            printf("Process now in time slot %d\n", x);
             prev = x;
 
-            if (!sleep)
+            if (!is_sleep)
                 remainingtime--;
         }
         
     }
 
+    printf("A7A\n");
     destroyClk(false);
 
     return 0;

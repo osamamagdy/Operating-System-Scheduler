@@ -60,11 +60,13 @@ Heap *CreateHeap(int capacity)
 
 void insert(Heap *h, struct process* key)
 {
+    printf("inserting\n");
     if (h->count < h->capacity)
     {
         h->arr[h->count] = key;
         heapify_bottom_top(h, h->count);
         h->count++;
+        printf("insert process with id %d\n",key->id);
     }
 }
 

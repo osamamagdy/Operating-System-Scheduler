@@ -7,6 +7,7 @@ typedef struct process
     int arrival;
     int runtime;
     int priority;
+    int pid;
     /* data */
 }process;
 
