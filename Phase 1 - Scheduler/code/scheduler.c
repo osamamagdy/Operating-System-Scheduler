@@ -1,5 +1,11 @@
 #include "headers.h"
+#include "RR.h"
 
+void FCFS_SC(int, int, int);
+
+void SJF_SC();
+
+void RoundRobin();
 
 int main(int argc, char *argv[])
 {
