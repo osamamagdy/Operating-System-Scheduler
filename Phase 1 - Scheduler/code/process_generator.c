@@ -2,7 +2,6 @@
 void clearResources(int);
 
 
-
 int main(int argc, char *argv[])
 {
 
@@ -17,6 +16,28 @@ int main(int argc, char *argv[])
 
     key_id = ftok("keyfile", 65);
     msgq_id = msgget(key_id, 0666 | IPC_CREAT);
+
+    int sem1 = semget(key_id, 1, 0666 | IPC_CREAT);
+    int sem2 = semget(key_id + 1, 1, 0666 | IPC_CREAT);
+    if (sem1 == -1 || sem2 == -1)
+    {
+        perror("Error in create sem");
+        exit(-1);
+    }
+
+    union Semun semun;
+    semun.val = 0; /* initial value of the semaphore, Binary semaphore */
+    if (semctl(sem1, 0, SETVAL, semun) == -1)
+    {
+        perror("Error in semctl");
+        exit(-1);
+    }
+    if (semctl(sem2, 0, SETVAL, semun) == -1)
+    {
+        perror("Error in semctl");
+        exit(-1);
+    }
+
 
     if (msgq_id == -1)
     {
@@ -172,7 +193,12 @@ int main(int argc, char *argv[])
      * @todo Upon exit we might need to call clearResources instead of only destroyClk
      * 
      */
+    
+    up(sem1);
+    down(sem2);
 
+    clear_sem(sem1);
+    clear_sem(sem2);
     destroyClk(1);
 }
 

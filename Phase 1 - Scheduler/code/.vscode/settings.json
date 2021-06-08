@@ -2,6 +2,7 @@
     "files.associations": {
         "headers.h": "c",
         "list.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "first_come_first_serve.h": "c"
     }
 }
