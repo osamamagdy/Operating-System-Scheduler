@@ -1,13 +1,10 @@
 #include "headers.h"
-#include "list.c"
 
-struct List ready_queue;
 
 int main(int argc, char *argv[])
 {
     
     initClk();
-    initList(&ready_queue);
 
 
     //TODO: implement the scheduler.
@@ -38,7 +35,8 @@ int main(int argc, char *argv[])
 
 void FCFS_SC(int msgq_id, int sem1, int sem2)
 {
-    
+    struct List ready_queue;
+    initList(&ready_queue);
     bool CPU_working = false;
     int pid;
     struct msgbuff message;

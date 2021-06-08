@@ -1,13 +1,5 @@
 #include "list.c"
 
-typedef struct process
-{
-    int id;
-    int arrival;
-    int runtime;
-    int priority;
-    /* data */
-} process;
 
 struct Heap
 {
@@ -18,7 +10,7 @@ struct Heap
 typedef struct Heap Heap;
 
 Heap *CreateHeap(int capacity);
-void insert(Heap *h, process* key);
+void insert(Heap *h, struct process *key);
 void heapify_bottom_top(Heap *h, int index);
 void heapify_top_bottom(Heap *h, int parent_node);
 process * PopMin(Heap *h);
@@ -61,12 +53,12 @@ Heap *CreateHeap(int capacity)
 
     h->count = 0;
     h->capacity = capacity;
-    h->arr = (process **)malloc(capacity * sizeof(process *)); //size in bytes
+    h->arr = (struct process **)malloc(capacity * sizeof(struct process *)); //size in bytes
 
     return h;
 }
 
-void insert(Heap *h, process* key)
+void insert(Heap *h, struct process* key)
 {
     if (h->count < h->capacity)
     {
@@ -78,7 +70,7 @@ void insert(Heap *h, process* key)
 
 void heapify_bottom_top(Heap *h, int index)
 {
-    process* temp;
+    struct process* temp;
     int parent_node = (index - 1) / 2;
 
     if (h->arr[parent_node]->priority > h->arr[index]->priority)
@@ -96,7 +88,7 @@ void heapify_top_bottom(Heap *h, int parent_node)
     int left = parent_node * 2 + 1;
     int right = parent_node * 2 + 2;
     int min;
-    process* temp;
+    struct process* temp;
 
     if (left >= h->count || left < 0)
         left = -1;
@@ -128,7 +120,7 @@ int Empty(Heap *h)
 
 process *PopMin(Heap *h)
 {
-    process *pop;
+    struct process *pop;
     if (Empty(h))
     {
         return NULL;
