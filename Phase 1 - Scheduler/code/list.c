@@ -12,6 +12,8 @@ typedef struct process
     int runtime_log;
     int total_wait;
     int last_run;
+    int address;
+    int memsize;
     /* data */
 }process;
 
