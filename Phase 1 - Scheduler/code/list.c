@@ -8,6 +8,10 @@ typedef struct process
     int runtime;
     int priority;
     int pid;
+    int start_time;
+    int runtime_log;
+    int total_wait;
+    int last_run;
     /* data */
 }process;
 

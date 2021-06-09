@@ -12,4 +12,4 @@ all: clean build
 
 run:
 	./test_generator.out
-	./process_generator.out 1
+	./process_generator.out 2
