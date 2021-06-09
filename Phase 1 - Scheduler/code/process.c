@@ -9,19 +9,19 @@ void awake_sig();
 
 int main(int agrc, char *argv[])
 {
-    //signal(SIGTSTP, sleep_sig);
-    //signal(SIGCONT, awake_sig);
+    signal(SIGTSTP, sleep_sig);
+    signal(SIGCONT, awake_sig);
     initClk();
 
     //TODO The process needs to get the remaining time from somewhere
 
     /**
-     * @todo check for ههههههه
+     * @todo check for 
     */
     remainingtime = atoi(argv[1]);
     int prev = getClk();
 
-    printf("Process %d :  started with time = %d\n", getpid(), remainingtime);
+    printf("\nProcess %d :  started with time = %d\n", getpid(), remainingtime);
     while (remainingtime > 0)
     {
         int x = getClk();
@@ -33,25 +33,32 @@ int main(int agrc, char *argv[])
             if (!is_sleep)
             {
                 remainingtime--;
-                printf("Process %d time remaining %d\n", getpid(), remainingtime);
             }
+
+            printf("\nProcess %d time remaining %d\n", getpid(), remainingtime);
         }
     }
 
-    printf("Process %d terminating\n", getpid());
+    printf("\nProcess %d terminating\n", getpid());
     return 0;
 }
 
 void sleep_sig(int signum)
 {
     sleep(1);
-    printf("Process %d sleep\n", getpid());
+    printf("\nProcess %d sleep\n", getpid());
     is_sleep = true;
+
+    while (is_sleep)
+    {
+        
+    }
+    
 }
 
 void awake_sig(int signum)
 {
     sleep(1);
-    printf("Process %d Wake \n", getpid());
+    printf("\nProcess %d Wake \n", getpid());
     is_sleep = false;
 }

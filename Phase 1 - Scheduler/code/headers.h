@@ -1,3 +1,8 @@
+#ifndef __COMMON_H__
+#define __COMMON_H__
+//header file content
+
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -18,6 +23,8 @@
 #define HPF 3
 #define SRTN 4
 #define RR 5
+
+#define INT_MAX 4000000
 
 
 
@@ -131,3 +138,5 @@ void destroyClk(bool terminateAll)
         killpg(getpgrp(), SIGINT);
     }
 }
+
+#endif

@@ -1,16 +1,19 @@
-#include "headers.h"
-
-int process_shmid;
-
-
-
+#include "FCFS_Algorithm.h"
+#include "SJF_Algorithm.h"
+#include "HPF_Algorithm.h"
+#include "SRTN_Algorithm.h"
+#include "RR_Algorithm.h"
 
 void clearResources(int signum);
+int process_shmid;
+int msgq_id,sem1,sem2;
+union Semun semun;
 
 int main(int argc, char *argv[])
 {
 
     initClk();
+    printf("%s", argv[1]);
 
     //TODO: implement the scheduler.
     //TODO: upon termination release the clock resources.
@@ -30,7 +33,32 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    SJF_SC(msgq_id, sem1, sem2);
+
+    FILE* sc_logs = fopen("scheduler.log", "w");
+    FILE* sc_perf = fopen("Scheduler.perf", "w");
+
+    if (sc_logs == NULL || sc_perf == NULL)
+    {
+        printf("Couldn't open  for logs\n");
+        return 0;
+    }
+
+    fprintf(sc_logs, "#At time x process y state arr w total z remain y wait k\n");
+
+    if (strcmp(argv[1], "1") == 0)
+        FCFS_SC(msgq_id, sem1, sem2, sc_logs, sc_perf);
+    else if (strcmp(argv[1], "2") == 0)
+        SJF_SC(msgq_id, sem1, sem2, sc_logs, sc_perf, atoi(argv[2]));
+    else if (strcmp(argv[1], "3") == 0)
+        HPF_SC(msgq_id, sem1, sem2, sc_logs, sc_perf, atoi(argv[2]));
+    else if (strcmp(argv[1], "4") == 0)
+        SRTN_SC(msgq_id, sem1, sem2, sc_logs, sc_perf, atoi(argv[2]));
+    else 
+        RoundRobin(msgq_id, sem1, sem2, atoi(argv[3]), sc_logs, sc_perf);
+    fclose(sc_logs);
+    fclose(sc_perf);
+
+    clearResources(0);
 
     printf("Scheduler ended\n");
 
@@ -42,227 +70,13 @@ int main(int argc, char *argv[])
     destroyClk(true);
 }
 
-void FCFS_SC(int msgq_id, int sem1, int sem2)
-{
-    struct List ready_queue;
-    initList(&ready_queue);
-    bool CPU_working = false;
-    int pid;
-    struct msgbuff message;
-    int prev = getClk();
-    struct process curent_p;
-    int current_remain = 1;
-
-    ////To use with Processes 
-    key_t process_shmkey_id ;
-    process_shmkey_id = ftok("keyfile", 'M');                  //create a key with the id
-    process_shmid = shmget(process_shmkey_id, 256, 0666 | IPC_CREAT); //With IPC_CREAT as a flag--> this msgget will search for a shared memory with the id of the key_id (65)
-
-    if (process_shmid == -1)
-    {
-        perror("Error in create");
-        exit(-1);
-    }
-//    printf("shared memory ID = %d\n", process_shmid);
-
-    void *process_shmaddr = shmat(process_shmid, (void *)0, 0);
-    if (process_shmaddr == -1)
-    {
-        perror("Error in attach in reader");
-        exit(-1);
-    }
-    else
-    {
-//        printf("\nReader: Shared memory attached at address %x\n", shmaddr);
-
-    }
-
-    process_shmaddr = &(curent_p.pid);
-
-    while (1)
-    {
-        int x = getClk();
-        if (x > prev)
-        {
-            prev = x;
-
-            if (CPU_working)
-            {
-                current_remain--;
-            }
-        }
-
-        if (!CPU_working && ready_queue.size != 0)
-        {
-            curent_p.id = ready_queue.head->data.id;
-            curent_p.arrival = ready_queue.head->data.arrival;
-            curent_p.priority = ready_queue.head->data.priority;
-            curent_p.runtime = ready_queue.head->data.runtime;
-            curent_p.pid = ready_queue.head->data.pid;
-
-//            printf("shared memory with %d\n",*((int*)process_shmaddr));
-
-            kill(curent_p.pid, SIGCONT);
-
-            current_remain = curent_p.runtime;
-            printf("Scheduler : at time %d run new process with id = %d at pid = %d\n", x, curent_p.id, curent_p.pid);
-            CPU_working = true;
-            dequeue(&ready_queue);
-        }
-        else if (CPU_working && current_remain <= 0)
-        {
-            printf(" Scheduler : at time %d end process with id = %d\n", x, curent_p.id);
-            CPU_working = false;
-        }
-        else if (!CPU_working && ready_queue.size == 0 && current_remain <= 0)
-        {
-
-            bool end = down_nowait(sem1);
-            if (end)
-            {
-                up(sem2);
-                return;
-            }
-        }
-
-        int rec_val = msgrcv(msgq_id, &message, sizeof(message.p), 0, IPC_NOWAIT);
-        if (rec_val != -1)
-        {
-            printf("Scheduler : New process arrived with id = %d\n", message.p.id);
-            pid = fork();
-            if (pid == 0)
-            {
-                printf("Forked\n");
-                char snum[5];
-                sprintf(snum, "%d", message.p.runtime);
-                char *args[] = {"./process.out", snum, NULL};
-                if (execv(args[0], args) < 0)
-                    printf("Failed\n");
-            }
-            else
-            {
-                
-                message.p.pid = pid;
-                enqueue(&ready_queue, &message.p);
-//                printf("pid is %d == %d\n", pid, message.p.pid);
-                kill(pid, SIGTSTP);
-            }
-        }
-    }
-    clearResources(0);
-}
-
-void SJF_SC(int msgq_id, int sem1, int sem2)
-{
-    struct Heap * ready_queue = CreateHeap(100);
-
-    bool CPU_working = false;
-    int pid;
-    struct msgbuff message;
-    int prev = getClk();
-    struct process * curent_p;
-    int current_remain = 1;
-
-    ////To use with Processes 
-    key_t process_shmkey_id ;
-    process_shmkey_id = ftok("keyfile", 'M');                  //create a key with the id
-    process_shmid = shmget(process_shmkey_id, 256, 0666 | IPC_CREAT); //With IPC_CREAT as a flag--> this msgget will search for a shared memory with the id of the key_id (65)
-
-    if (process_shmid == -1)
-    {
-        perror("Error in create");
-        exit(-1);
-    }
-//    printf("shared memory ID = %d\n", process_shmid);
-
-    void *process_shmaddr = shmat(process_shmid, (void *)0, 0);
-    if (process_shmaddr == -1)
-    {
-        perror("Error in attach in reader");
-        exit(-1);
-    }
-    else
-    {
-//        printf("\nReader: Shared memory attached at address %x\n", shmaddr);
-
-    }
-
-    process_shmaddr = &(curent_p->pid);
-
-    while (1)
-    {
-        int x = getClk();
-        if (x > prev)
-        {
-            prev = x;
-
-            if (CPU_working)
-            {
-                current_remain--;
-            }
-        }
-
-        if (!CPU_working && ready_queue->count != 0)
-        {
-            curent_p= PopMin(ready_queue);
-            
-//          printf("shared memory with %d\n",*((int*)process_shmaddr));
-
-            kill(curent_p->pid, SIGCONT);
-
-            current_remain = curent_p->runtime;
-            printf("Scheduler : at time %d run new process with id = %d at pid = %d\n", x, curent_p->id, curent_p->pid);
-            CPU_working = true;
-
-        }
-        else if (CPU_working && current_remain <= 0)
-        {
-            printf(" Scheduler : at time %d end process with id = %d\n", x, curent_p->id);
-            //free(curent_p);
-            CPU_working = false;
-        }
-        else if (!CPU_working && ready_queue->count == 0 && current_remain <= 0)
-        {
-
-            bool end = down_nowait(sem1);
-            if (end)
-            {
-                up(sem2);
-                return;
-            }
-        }
-
-        int rec_val = msgrcv(msgq_id, &message, sizeof(message.p), 0, IPC_NOWAIT);
-        if (rec_val != -1)
-        {
-            printf("Scheduler : New process arrived with id = %d\n", message.p.id);
-            pid = fork();
-            if (pid == 0)
-            {
-                printf("Forked\n");
-                char snum[5];
-                sprintf(snum, "%d", message.p.runtime);
-                char *args[] = {"./process.out", snum, NULL};
-                if (execv(args[0], args) < 0)
-                    printf("Failed\n");
-            }
-            else
-            {
-                
-                message.p.pid = pid;
-                message.p.priority = message.p.runtime;
-                insert(ready_queue, &message.p);
-//                printf("pid is %d == %d\n", pid, message.p.pid);
-                kill(pid, SIGTSTP);
-            }
-        }
-    }
-    clearResources(0);
-}
 
 void clearResources(int signum)
 {
     //TODO Clears all resources in case of interruption
-    shmctl(process_shmid, IPC_RMID, (struct shmid_ds *)0);
+    destroyClk(1);
+    msgctl(msgq_id, IPC_RMID, (struct msqid_ds *) 0);
+    semctl(sem1,0 , IPC_RMID,semun);
+    semctl(sem2,0 , IPC_RMID,semun);
     raise(SIGKILL);
 }
