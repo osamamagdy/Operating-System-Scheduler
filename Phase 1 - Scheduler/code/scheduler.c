@@ -182,6 +182,8 @@ inline void RoundRobin(const int msgq_id, int sem1, int sem2, const int timeQuna
     int current_remain = 1;
     int elapsedQunatum = 0;
 
+    struct Node *headePtr = NULL;
+
     int prevTime = getClk();
     while (1)
     {
@@ -200,33 +202,37 @@ inline void RoundRobin(const int msgq_id, int sem1, int sem2, const int timeQuna
         {
             printf("\nat time %d end process with id = %d\n", currentTime, currentProcess.id);
             CPU_working = false;
+            //printf("\nat time %d number of remaining processess= %d\n", currentTime, ready_queue.size);
+            //free(headePtr);
         }
         else if (elapsedQunatum == timeQunatum && current_remain > 0)
         {
-            printf("\nat time %d stop proccess with id=%d\n", currentTime, currentProcess.id, currentProcess.pid);
+            printf("\nat time %d stop proccess with id=%d\n", currentTime, currentProcess.id);
             kill(currentProcess.pid, SIGTSTP);
             currentProcess.runtime = current_remain;
             prevProcess = currentProcess;
-            //circEnqueue(&ready_queue,&currentProcess);
+
             CPU_working = false;
             enQ_R_P = true;
         }
         if (!CPU_working && ready_queue.size != 0)
         {
-            currentProcess=ready_queue.head->data;
+            currentProcess = ready_queue.head->data;
 
             /*currentProcess.id = ready_queue.head->data.id;
             currentProcess.arrival = ready_queue.head->data.arrival;
             currentProcess.priority = ready_queue.head->data.priority;
             currentProcess.runtime = ready_queue.head->data.runtime;
             currentProcess.pid = ready_queue.head->data.pid;*/
-            
+            //headePtr=ready_queue.head;
             current_remain = ready_queue.head->data.runtime;
             elapsedQunatum = 0;
             kill(currentProcess.pid, SIGCONT);
             printf("\nat time %d run process with id = %d\n", currentTime, currentProcess.id);
+            //printf("\nbefore circDequeue readyQ size= %d\n", ready_queue.size);
             CPU_working = true;
             circDequeue(&ready_queue);
+            //printf("\nafter circDequeue readyQ size= %d\n", ready_queue.size);
         }
 
         else if (!CPU_working && ready_queue.size == 0 && current_remain <= 0)
@@ -252,9 +258,9 @@ inline void RoundRobin(const int msgq_id, int sem1, int sem2, const int timeQuna
             }
             else
             {
-                kill(pid,SIGTSTP);
+                kill(pid, SIGTSTP);
                 message.p.pid = pid;
-                printf("\nprocess id= %d runtime=%d", message.p.id, message.p.runtime);
+                //printf("\nprocess id= %d runtime=%d", message.p.id, message.p.runtime);
                 circEnqueue(&ready_queue, &message.p);
                 recv = msgrcv(msgq_id, &message, sizeof(message.p), 0, IPC_NOWAIT);
             }
@@ -265,8 +271,10 @@ inline void RoundRobin(const int msgq_id, int sem1, int sem2, const int timeQuna
 
         if (enQ_R_P)
         {
-            circEnqueue(&ready_queue, &prevProcess);
             enQ_R_P = false;
+            circEnqueue(&ready_queue, &prevProcess);
+            //printf("\nat time %d enqueue process with id= %d , readyQ size= %d\n", currentTime, prevProcess.id, ready_queue.size);
+            elapsedQunatum=0;
         }
     }
 }

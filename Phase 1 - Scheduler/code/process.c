@@ -4,20 +4,10 @@
 int remainingtime;
 bool is_sleep = false;
 
-void sleep_sig(int signum)
-{
-    is_sleep = true;
-    signal(SIGTSTP, sleep_sig);
-}
-
-void awake_sig(int signum)
-{
-    is_sleep = false;
-    signal(SIGCONT, awake_sig);
-}
-
 int main(int agrc, char *argv[])
 {
+    //raise(SIGTSTP);
+    //printf("====Started====");
     //signal(SIGTSTP, sleep_sig);
     //signal(SIGCONT, awake_sig);
     initClk();
@@ -37,14 +27,17 @@ int main(int agrc, char *argv[])
 
         if (x > prev)
         {
-            printf("\n remaining time : %d, current time=%d\n", remainingtime, getClk());
             prev = x;
             remainingtime--;
+            //printf("\n*****remaining time : %d, current time=%d\n", remainingtime, getClk());
+            //fflush(stdout);
         }
     }
-    while (prev >= getClk())
-        ;
-    printf("\n process %d time to exit: %d\n", getpid(), getClk());
+    //fflush(stdout);
+
+    //printf("\n ******process %d time to exit: %d\n", getpid(), getClk());
+    //fflush(stdout);
+
     destroyClk(false);
 
     return 0;
