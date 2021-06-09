@@ -50,7 +50,7 @@ void heapify_bottom_top(struct Heap *h, int index)
     struct process* temp;
     int parent_node = (index - 1) / 2;
 
-    if (h->arr[parent_node]->priority > h->arr[index]->priority)
+    if (h->arr[parent_node]->priority > h->arr[index]->priority || (h->arr[parent_node]->priority == h->arr[index]->priority && h->arr[parent_node]->arrival > h->arr[index]->arrival))
     {
         //swap and recursive call
         temp = h->arr[parent_node];
@@ -72,11 +72,11 @@ void heapify_top_bottom(struct Heap *h, int parent_node)
     if (right >= h->count || right < 0)
         right = -1;
 
-    if (left != -1 && h->arr[left]->priority < h->arr[parent_node]->priority)
+    if (left != -1 && (h->arr[left]->priority < h->arr[parent_node]->priority || (h->arr[left]->priority == h->arr[parent_node]->priority && h->arr[left]->arrival < h->arr[parent_node]->arrival) ))
         min = left;
     else
         min = parent_node;
-    if (right != -1 && h->arr[right]->priority < h->arr[min]->priority)
+    if (right != -1 && (h->arr[right]->priority < h->arr[min]->priority || (h->arr[right]->priority == h->arr[min]->priority && h->arr[right]->arrival < h->arr[min]->arrival)))
         min = right;
 
     if (min != parent_node)
