@@ -9,7 +9,7 @@ void FCFS_SC(int msgq_id, int sem1, int sem2, FILE* sc_logs, FILE* sc_perf)
     // state variables
     bool CPU_working = false;
     int prev = getClk();
-    struct process curent_p;
+    struct process current_p;
     int current_remain = 1;
 
     // forking variables
@@ -43,24 +43,24 @@ void FCFS_SC(int msgq_id, int sem1, int sem2, FILE* sc_logs, FILE* sc_perf)
         // run a process from ready queue if we can
         if (!CPU_working && ready_queue.size != 0)
         {
-            curent_p.id = ready_queue.head->data.id;
-            curent_p.arrival = ready_queue.head->data.arrival;
-            curent_p.priority = ready_queue.head->data.priority;
-            curent_p.runtime = ready_queue.head->data.runtime;
-            curent_p.pid = ready_queue.head->data.pid;
-            curent_p.start_time = x;
+            current_p.id = ready_queue.head->data.id;
+            current_p.arrival = ready_queue.head->data.arrival;
+            current_p.priority = ready_queue.head->data.priority;
+            current_p.runtime = ready_queue.head->data.runtime;
+            current_p.pid = ready_queue.head->data.pid;
+            current_p.start_time = x;
 
 
-            kill(curent_p.pid, SIGCONT);
+            kill(current_p.pid, SIGCONT);
 
-            current_remain = curent_p.runtime;
+            current_remain = current_p.runtime;
 
-            CPURunTime += curent_p.runtime;
-            WaitingTime += (x - curent_p.arrival);
+            CPURunTime += current_p.runtime;
+            WaitingTime += (x - current_p.arrival);
             Count++;
 
-            printf("\nScheduler : at time %d run new process with id = %d at pid = %d\n", x, curent_p.id, curent_p.pid);
-            fprintf(sc_logs, "At time %d process %d started arr %d total %d remain %d wait %d\n", x, curent_p.id, curent_p.arrival, curent_p.runtime, curent_p.runtime, x - curent_p.arrival);
+            printf("\nScheduler : at time %d run new process with id = %d at pid = %d\n", x, current_p.id, current_p.pid);
+            fprintf(sc_logs, "At time %d process %d started arr %d total %d remain %d wait %d\n", x, current_p.id, current_p.arrival, current_p.runtime, current_p.runtime, x - current_p.arrival);
             CPU_working = true;
             dequeue(&ready_queue);
         }
@@ -68,10 +68,10 @@ void FCFS_SC(int msgq_id, int sem1, int sem2, FILE* sc_logs, FILE* sc_perf)
         // end of a process
         else if (CPU_working && current_remain <= 0)
         {
-            int Turnaround = (x - curent_p.arrival);
-            WeightedTurnaround += Turnaround / (float) curent_p.runtime;
-            printf("\nScheduler : at time %d end process with id = %d\n", x, curent_p.id);
-            fprintf(sc_logs, "At time %d process %d finished arr %d total %d remain %d wait %d\n", x, curent_p.id, curent_p.arrival, curent_p.runtime, 0, curent_p.start_time - curent_p.arrival);
+            int Turnaround = (x - current_p.arrival);
+            WeightedTurnaround += Turnaround / (float) current_p.runtime;
+            printf("\nScheduler : at time %d end process with id = %d\n", x, current_p.id);
+            fprintf(sc_logs, "At time %d process %d finished arr %d total %d remain %d wait %d\n", x, current_p.id, current_p.arrival, current_p.runtime, 0, current_p.start_time - current_p.arrival);
             CPU_working = false;
         }
 

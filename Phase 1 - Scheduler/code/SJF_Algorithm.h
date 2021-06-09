@@ -7,7 +7,7 @@ void SJF_SC(int msgq_id, int sem1, int sem2,  FILE* sc_logs, FILE* sc_perf, int 
     int pid;
     struct msgbuff message;
     int prev = getClk();
-    struct process * curent_p;
+    struct process * current_p;
     int current_remain = 1;
 
     float WeightedTurnaround = 0;
@@ -31,27 +31,27 @@ void SJF_SC(int msgq_id, int sem1, int sem2,  FILE* sc_logs, FILE* sc_perf, int 
 
         if (!CPU_working && ready_queue->count != 0)
         {
-            curent_p= PopMin(ready_queue);
-            curent_p->start_time = x;
+            current_p= PopMin(ready_queue);
+            current_p->start_time = x;
 
-            kill(curent_p->pid, SIGCONT);
+            kill(current_p->pid, SIGCONT);
 
-            CPURunTime += curent_p->runtime;
-            WaitingTime += (x - curent_p->arrival);
+            CPURunTime += current_p->runtime;
+            WaitingTime += (x - current_p->arrival);
             Count++;
 
-            current_remain = curent_p->runtime;
-            printf("\nScheduler : at time %d run new process with id = %d at pid = %d\n", x, curent_p->id, curent_p->pid);
-            fprintf(sc_logs, "At time %d process %d started arr %d total %d remain %d wait %d\n", x, curent_p->id, curent_p->arrival, curent_p->runtime, curent_p->runtime, x - curent_p->arrival);
+            current_remain = current_p->runtime;
+            printf("\nScheduler : at time %d run new process with id = %d at pid = %d\n", x, current_p->id, current_p->pid);
+            fprintf(sc_logs, "At time %d process %d started arr %d total %d remain %d wait %d\n", x, current_p->id, current_p->arrival, current_p->runtime, current_p->runtime, x - current_p->arrival);
             CPU_working = true;
 
         }
         else if (CPU_working && current_remain <= 0)
         {
-            int Turnaround = (x - curent_p->arrival);
-            WeightedTurnaround += Turnaround / (float) curent_p->runtime;
-            printf("\nScheduler : at time %d end process with id = %d\n", x, curent_p->id);
-            fprintf(sc_logs, "At time %d process %d finished arr %d total %d remain %d wait %d\n", x, curent_p->id, curent_p->arrival,  curent_p->runtime, 0,curent_p->start_time - curent_p->arrival);
+            int Turnaround = (x - current_p->arrival);
+            WeightedTurnaround += Turnaround / (float) current_p->runtime;
+            printf("\nScheduler : at time %d end process with id = %d\n", x, current_p->id);
+            fprintf(sc_logs, "At time %d process %d finished arr %d total %d remain %d wait %d\n", x, current_p->id, current_p->arrival,  current_p->runtime, 0,current_p->start_time - current_p->arrival);
             CPU_working = false;
         }
         else if (!CPU_working && ready_queue->count == 0 && current_remain <= 0)
