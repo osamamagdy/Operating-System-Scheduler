@@ -7,15 +7,15 @@ typedef struct process
     int arrival;
     int runtime;
     int priority;
+    int pid;
     /* data */
-}process;
+} process;
 
 struct Node
 {
     struct process data;
     struct Node *next;
 };
-
 
 struct List
 {
@@ -30,7 +30,6 @@ struct msgbuff
     struct process p;
 };
 
-
 void initList(struct List *l)
 {
     l->head = NULL;
@@ -40,7 +39,7 @@ void initList(struct List *l)
 
 void enqueue(struct List *l, struct process *p)
 {
-    struct Node *n = (struct Node *) malloc(sizeof(struct Node));
+    struct Node *n = (struct Node *)malloc(sizeof(struct Node));
     n->data = *p;
     n->next = NULL;
 
@@ -59,7 +58,8 @@ void enqueue(struct List *l, struct process *p)
 
 void dequeue(struct List *l)
 {
-    if (l->size == 0) return ;
+    if (l->size == 0)
+        return;
 
     struct Node *dNode = l->head;
     l->head = l->head->next;
@@ -67,7 +67,39 @@ void dequeue(struct List *l)
 
     l->size--;
 }
+void circEnqueue(struct List *l, struct process *p)
+{
+    struct Node *n = (struct Node *)malloc(sizeof(struct Node));
+    n->data = *p;
+    n->next = NULL;
 
+    if (l->size == 0)
+    {
+        l->head = n;
+        l->tail = n;
+        n->next = l->head; // l->tail->next=l->head;
+    }
+    else
+    {
+        l->tail->next = n;
+        l->tail = n;
+        n->next = l->head; // l->tail->next = l->head;
+    }
+    l->size++;
+}
+void circDequeue(struct List *l)
+{
+    if (l->size == 0)
+        return;
+
+    struct Node *dNode = l->head;
+    l->head = l->head->next;
+    l->tail->next = l->head;
+    free(dNode);
+    dNode = NULL;
+
+    l->size--;
+}
 void PrintList(struct List *l)
 {
     struct Node *n = l->head;
@@ -75,7 +107,6 @@ void PrintList(struct List *l)
     while (n)
     {
         printf("{%d, %d, %d, %d}\n", n->data.id, n->data.arrival, n->data.priority, n->data.runtime);
-        n = n->next;   
+        n = n->next;
     }
-    
 }

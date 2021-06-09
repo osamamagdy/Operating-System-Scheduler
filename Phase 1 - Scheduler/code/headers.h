@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -22,6 +24,7 @@
 
 
 typedef short bool;
+typedef unsigned short ushort;
 #define true 1
 #define false 0
 
