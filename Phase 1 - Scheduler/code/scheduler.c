@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    FCFS_SC(msgq_id, sem1, sem2);
+    SJF_SC(msgq_id, sem1, sem2);
 
     printf("Scheduler ended\n");
 
@@ -154,14 +154,40 @@ void FCFS_SC(int msgq_id, int sem1, int sem2)
 
 void SJF_SC(int msgq_id, int sem1, int sem2)
 {
-    struct Heap *ready_queue = CreateHeap(100);
-    printf("Created heap with count %d, capacity %d \n", ready_queue->count, ready_queue->capacity);
+    struct Heap * ready_queue = CreateHeap(100);
+
     bool CPU_working = false;
     int pid;
     struct msgbuff message;
     int prev = getClk();
-    struct process *curent_p;
+    struct process * curent_p;
     int current_remain = 1;
+
+    ////To use with Processes 
+    key_t process_shmkey_id ;
+    process_shmkey_id = ftok("keyfile", 'M');                  //create a key with the id
+    process_shmid = shmget(process_shmkey_id, 256, 0666 | IPC_CREAT); //With IPC_CREAT as a flag--> this msgget will search for a shared memory with the id of the key_id (65)
+
+    if (process_shmid == -1)
+    {
+        perror("Error in create");
+        exit(-1);
+    }
+//    printf("shared memory ID = %d\n", process_shmid);
+
+    void *process_shmaddr = shmat(process_shmid, (void *)0, 0);
+    if (process_shmaddr == -1)
+    {
+        perror("Error in attach in reader");
+        exit(-1);
+    }
+    else
+    {
+//        printf("\nReader: Shared memory attached at address %x\n", shmaddr);
+
+    }
+
+    process_shmaddr = &(curent_p->pid);
 
     while (1)
     {
@@ -174,27 +200,30 @@ void SJF_SC(int msgq_id, int sem1, int sem2)
             {
                 current_remain--;
             }
-            printf("current time %d\n", x);
         }
 
-        if (!CPU_working && ready_queue->count > 0)
+        if (!CPU_working && ready_queue->count != 0)
         {
-            printf("at time %d hi 1", x);
-            curent_p = PopMin(ready_queue);
+            curent_p= PopMin(ready_queue);
+            
+//          printf("shared memory with %d\n",*((int*)process_shmaddr));
+
+            kill(curent_p->pid, SIGCONT);
 
             current_remain = curent_p->runtime;
-
-            printf("at time %d run new process with id = %d\n", x, curent_p->id);
+            printf("Scheduler : at time %d run new process with id = %d at pid = %d\n", x, curent_p->id, curent_p->pid);
             CPU_working = true;
+
         }
         else if (CPU_working && current_remain <= 0)
         {
-            printf("at time %d end process with id = %d\n", x, curent_p->id);
+            printf(" Scheduler : at time %d end process with id = %d\n", x, curent_p->id);
+            //free(curent_p);
             CPU_working = false;
         }
-        else if (!CPU_working && ready_queue->capacity == 0 && current_remain <= 0)
+        else if (!CPU_working && ready_queue->count == 0 && current_remain <= 0)
         {
-            printf("at time %d hi 2", x);
+
             bool end = down_nowait(sem1);
             if (end)
             {
@@ -204,86 +233,31 @@ void SJF_SC(int msgq_id, int sem1, int sem2)
         }
 
         int rec_val = msgrcv(msgq_id, &message, sizeof(message.p), 0, IPC_NOWAIT);
-
         if (rec_val != -1)
         {
-            printf("at time %d New process arrived with id = %d\n", x, message.p.id);
-            curent_p->priority = curent_p->runtime;
-
-            //insert(ready_queue , curent_p);
-            printf("at time %d hi 1", x);
-
+            printf("Scheduler : New process arrived with id = %d\n", message.p.id);
             pid = fork();
             if (pid == 0)
             {
+                printf("Forked\n");
                 char snum[5];
                 sprintf(snum, "%d", message.p.runtime);
                 char *args[] = {"./process.out", snum, NULL};
-                execv(args[0], args);
+                if (execv(args[0], args) < 0)
+                    printf("Failed\n");
+            }
+            else
+            {
+                
+                message.p.pid = pid;
+                message.p.priority = message.p.runtime;
+                insert(ready_queue, &message.p);
+//                printf("pid is %d == %d\n", pid, message.p.pid);
+                kill(pid, SIGTSTP);
             }
         }
     }
-
-    /*
-    Heap PQ();
-    int currRemaining = 0; 
-    while(!empty(PQ) && !empty(array))
-    {
-        int x = getClk();
-        if (x > prev)
-        {
-            prev = x;
-
-            if (CPU_working)
-            {
-                current_remain--;
-            }
-            
-        }
-
-        if (!CPU_working && ready_queue.size != 0)
-        {
-            curent_p.id = ready_queue.head->data.id;
-            curent_p.arrival = ready_queue.head->data.arrival;
-            curent_p.priority = ready_queue.head->data.priority;
-            curent_p.runtime = ready_queue.head->data.runtime;
-            current_remain = ready_queue.head->data.runtime;
-
-            printf("at time %d run new process with id = %d\n", x, curent_p.id);
-            CPU_working = true;
-            dequeue(&ready_queue);
-        }
-        else if(CPU_working && current_remain <= 0)
-        {
-            printf("at time %d end process with id = %d\n", x, curent_p.id);   
-            CPU_working = false;
-        }
-        else if (!CPU_working && ready_queue.size == 0 && current_remain <= 0)
-        {
-            bool end = down_nowait(sem1);
-            if (end)
-            {
-                up(sem2);
-                return;
-            }
-       
-        }
-
-
-        if(process arrived)
-            PQ.push(proccess);
-        if(currRemaining) 
-            currRemaining--;
-        else
-
-        {
-            process = PQ.pop();
-            currRemaining = process.runtime;
-            start(process);
-        }
-    }
-
-    */
+    clearResources(0);
 }
 
 void clearResources(int signum)

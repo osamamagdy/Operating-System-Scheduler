@@ -47,9 +47,9 @@ int main()
     return 0;
 }*/
 
-Heap *CreateHeap(int capacity)
+struct Heap *CreateHeap(int capacity)
 {
-    Heap *h = (Heap *)malloc(sizeof(Heap)); //one is number of heap
+    struct Heap *h = (struct Heap *)malloc(sizeof(struct Heap)); //one is number of heap
 
     h->count = 0;
     h->capacity = capacity;
@@ -58,20 +58,28 @@ Heap *CreateHeap(int capacity)
     return h;
 }
 
-void insert(Heap *h, struct process* key)
+void insert(struct Heap * h, struct process* key)
 {
-    printf("inserting\n");
+
     if (h->count < h->capacity)
     {
         h->arr[h->count] = key;
+        printf("insert process with id %d and PID %d\n",key->id,key->pid);
         heapify_bottom_top(h, h->count);
         h->count++;
-        printf("insert process with id %d\n",key->id);
     }
+    for (int i = 0; i < h->count; i++)
+    {
+        printf(" id : %d", h->arr[i]->id);
+    }
+    printf("\n");
+    
+
 }
 
-void heapify_bottom_top(Heap *h, int index)
+void heapify_bottom_top(struct Heap *h, int index)
 {
+    printf("Here\n");
     struct process* temp;
     int parent_node = (index - 1) / 2;
 
@@ -85,7 +93,7 @@ void heapify_bottom_top(Heap *h, int index)
     }
 }
 
-void heapify_top_bottom(Heap *h, int parent_node)
+void heapify_top_bottom(struct Heap *h, int parent_node)
 {
     int left = parent_node * 2 + 1;
     int right = parent_node * 2 + 2;
@@ -115,12 +123,12 @@ void heapify_top_bottom(Heap *h, int parent_node)
     }
 }
 
-int Empty(Heap *h)
+int Empty(struct Heap *h)
 {
     return h->count == 0;
 }
 
-process *PopMin(Heap *h)
+process *PopMin(struct Heap *h)
 {
     struct process *pop;
     if (Empty(h))
@@ -135,7 +143,7 @@ process *PopMin(Heap *h)
     return pop;
 }
 
-void print(Heap *h){
+void print(struct Heap *h){
     int i;
     printf("____________Print Heap_____________\n");
     for(i=0;i< h->count;i++){

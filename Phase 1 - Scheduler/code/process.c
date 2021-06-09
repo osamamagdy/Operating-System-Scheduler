@@ -9,8 +9,8 @@ void awake_sig();
 
 int main(int agrc, char *argv[])
 {
-    signal(SIGTSTP, sleep_sig);
-    signal(SIGCONT, awake_sig);
+    //signal(SIGTSTP, sleep_sig);
+    //signal(SIGCONT, awake_sig);
     initClk();
 
     //TODO The process needs to get the remaining time from somewhere
