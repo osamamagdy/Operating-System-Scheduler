@@ -1,19 +1,15 @@
 #include "headers.h"
 void clearResources(int);
 
-
-
-
+int process_shmid;
 int msgq_id,sem1,sem2;
 union Semun semun;
+
 
 int main(int argc, char *argv[])
 {
 
-    /**
-     * @todo We need to make this the number of processes in the file
-     * 
-     */
+    
     int p_num = 0;
     semun.val =0;
     key_t key_id;
@@ -31,7 +27,7 @@ int main(int argc, char *argv[])
     }
 
     union Semun semun;
-    semun.val = 0; /* initial value of the semaphore, Binary semaphore */
+    semun.val = 0; 
     if (semctl(sem1, 0, SETVAL, semun) == -1)
     {
         perror("Error in semctl");
@@ -65,7 +61,6 @@ int main(int argc, char *argv[])
      * 
      */
 
-    //char * file_name = argv[1];   //This line in case we want to pass the file name as an arguement but it's not mentioned in the documentation.
     char *file_name = "processes.txt";
 
     FILE *fp = fopen(file_name, "r");
@@ -96,6 +91,7 @@ int main(int argc, char *argv[])
         p->arrival = arrival;
         p->runtime = runtime;
         p->priority = priority;
+        p->runtime_log = runtime;
 
         enqueue(&array, p);
 
@@ -103,17 +99,12 @@ int main(int argc, char *argv[])
         p_num++;
     }
 
-    printf("%d\n", p_num);
 
     //Close the file
     fclose(fp);
 
-    /**
-     * @brief Here we read the chosen algorithm and switch according to #defines in the header file
-     * @todo modify if the algorithm needs some parameters that is expected to be provided by the command line
-     * @todo Write the switch case for each algorithm
-     */
-    char *algo = argv[1];
+    printf("\nSimulation Start....\n");
+  
 
     /**
      * @brief generate the clock & scheduler processes according to their names in the make file
@@ -132,18 +123,20 @@ int main(int argc, char *argv[])
             }
             else if (i == 1)
             {
-                char *args[] = {"./scheduler.out", NULL};
-                execv(args[0], args);
+                
+                char snum[10];
+                sprintf(snum, "%d", p_num);
+                char *args[] = {"./scheduler.out", argv[1], snum, argv[2],NULL};
+                execv(args[0], args);           
+            
             }
-            /* code */
+
         }
         else if (pid == -1)
         {
             printf("Error\n");
         }
     }
-
-    printf("I am the parent and my childs pid = %d and mine is %d\n", pid, getpid());
 
     /**
      * @brief Construct a new init Clk object
@@ -172,7 +165,6 @@ int main(int argc, char *argv[])
             prev = x;
             while (array.head->data.arrival == x)
             {
-                //printf("Process %d arrived at time : %d\n",array.head->data.id, x);
                 struct msgbuff message;
                 message.mtype = 7; 
                 message.p = array.head->data;
@@ -195,7 +187,7 @@ int main(int argc, char *argv[])
     }
 
     /**
-     * @todo Upon exit we might need to call clearResources instead of only destroyClk
+     * @brief Upon exit we might need to call clearResources instead of only destroyClk
      * 
      */
     
@@ -204,15 +196,15 @@ int main(int argc, char *argv[])
 
     clear_sem(sem1);
     clear_sem(sem2);
+
+    printf("\nSimulation end...\n");
     clearResources(0);
 }
 
 void clearResources(int signum)
 {
-    //TODO Clears all resources in case of interruption
-    destroyClk(1);
-    msgctl(msgq_id, IPC_RMID, (struct msqid_ds *) 0);
-    semctl(sem1,0 , IPC_RMID,semun);
-    semctl(sem2,0 , IPC_RMID,semun);
+    
+    shmctl(process_shmid, IPC_RMID, (struct shmid_ds *)0);
     raise(SIGKILL);
 }
+

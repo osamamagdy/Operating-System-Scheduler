@@ -16,36 +16,7 @@ void heapify_top_bottom(Heap *h, int parent_node);
 process * PopMin(Heap *h);
 int Empty(Heap *h);
 void print(Heap *h);
-/*
-int main()
-{
-    Heap *heap = CreateHeap(30); //Min Heap
-    process X [10] ;
-    for(int i = 0; i < 10; i++)
-        X[i].id = X[i].arrival = X[i].runtime = 0;
-    X[0].priority = 3;
-    X[1].priority = 7;
-    X[2].priority = 8;
-    X[3].priority = 4;
-    X[4].priority = 6;
-    X[5].priority = 2;
-    X[6].priority = 2;
-    X[7].priority = 6;
-    X[8].priority = 10;
-    X[9].priority = 9;
-    
-    for(int i = 0; i < 10; i++)
-    {
-        insert(heap, &X[i]);
-        print(heap);
-    }
-    for(int i=9;i>=0;i--){
-        printf(" Pop Minima : %d\n", PopMin(heap)->priority);
-        print(heap);
-    }
-    
-    return 0;
-}*/
+
 
 struct Heap *CreateHeap(int capacity)
 {
@@ -64,14 +35,10 @@ void insert(struct Heap * h, struct process* key)
     if (h->count < h->capacity)
     {
         h->arr[h->count] = key;
-        printf("insert process with id %d and PID %d\n",key->id,key->pid);
         heapify_bottom_top(h, h->count);
         h->count++;
     }
-    for (int i = 0; i < h->count; i++)
-    {
-        printf(" id : %d", h->arr[i]->id);
-    }
+    
     printf("\n");
     
 
@@ -79,7 +46,7 @@ void insert(struct Heap * h, struct process* key)
 
 void heapify_bottom_top(struct Heap *h, int index)
 {
-    printf("Here\n");
+
     struct process* temp;
     int parent_node = (index - 1) / 2;
 
